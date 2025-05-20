@@ -1,0 +1,24 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+
+data = []
+
+url = 'https://vnexpress.net'
+res = requests.get(url)
+soup = BeautifulSoup(res.text, 'html.parser')
+links= []
+# Tìm tất cả <li> có thuộc tính data-id (chuyên mục)
+menu_items = soup.find_all('li', attrs={'data-id': True})
+
+categories = {}
+
+for li in menu_items:
+    a_tag = li.find('a')
+    if a_tag and 'href' in a_tag.attrs:
+        name = a_tag.get_text(strip=True)
+        link = a_tag['href']
+        links.append(link)
+        if link.startswith('/'):  # nối với domain
+            link = 'https://vnexpress.net' + link
