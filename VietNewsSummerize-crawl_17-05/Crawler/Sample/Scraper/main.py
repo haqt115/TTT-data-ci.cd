@@ -16,6 +16,12 @@ def run_scraper(cfg):
         cfg["output_csv"], cfg["process"]
     )
     scraper.scrape()
+    # Kiểm tra file có được tạo sau scrape không
+    if os.path.exists(cfg["output_csv"]):
+        print(f"[+] File {cfg['output_csv']} đã được tạo.")
+    else:
+        print(f"[!] File {cfg['output_csv']} chưa được tạo, kiểm tra lại bước scrape.")
+        return  # Nếu chưa có file thì dừng luôn
 
     # Preprocess dữ liệu
     preprocess_news(cfg["output_csv"], cfg["process"])
@@ -27,9 +33,4 @@ if __name__ == '__main__':
     for cfg in config:
         run_scraper(cfg)
         
-import os
-scraper.scrape()
-if os.path.exists(cfg["output_csv"]):
-    print(f"[+] File {cfg['output_csv']} đã được tạo.")
-else:
-    print(f"[!] File {cfg['output_csv']} chưa được tạo, kiểm tra lại bước scrape.")
+
