@@ -6,8 +6,6 @@ class BaseScraper(ABC):
         self.base_url = base_url
         self.output_csv = output_csv
         self.process = process
-        self.persistent_file = persistent_file
-        self.emb_csv = emb_csv
         self.articles = []
 
     @abstractmethod
