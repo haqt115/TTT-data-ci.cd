@@ -3,7 +3,7 @@ import google.generativeai as genai
 import os
 import time
 
-# ===== 1. Danh sách API keys thay vì 1 key =====
+# ===== 1. Danh sách API keys =====
 API_KEYS = {
     "key1": "AIzaSyDbyeu_mamcJ_mnCz0x8rn9Bs01hb0ZGCc",
     "key2": "AIzaSyBOb1EJ7shnujjEDFYx7H2p4MszqEsVPL8",
@@ -23,35 +23,39 @@ API_KEYS = {
     "key16": "AIzaSyBmkbV2FTCiHiUtI74AZ7cJoCBtwPgeiew",
 }
 
-# ===== 2. Hàm tạo mô hình theo key =====
+# ===== 2. Hàm tạo model từ API key =====
 def load_model(api_key):
     genai.configure(api_key=api_key)
     return genai.GenerativeModel("models/gemini-2.0-flash")
 
-
-# 3. Hàm tóm tắt nội dung
-
+# ===== 3. Hàm tóm tắt 1 đoạn văn bản =====
 def summarize_text(text, max_len=3000):
     text = str(text)
     if len(text) > max_len:
-        text = text[:max_len]  # Giới hạn độ dài để tránh lỗi
+        text = text[:max_len]
 
     prompt = f"Tóm tắt văn bản sau trong 3 đến 4 câu:\n\n{text}"
-    for name, key in API_KEYS.items():
-        try:
-            model = load_model(key)
-            response = model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e:
-            print(f"[!] Key '{name}' bị lỗi: {e}")
-            time.sleep(5)  # Delay để tránh spam quota
-            continue
 
-    print("[!] Tất cả các API key đều thất bại.")
-    return ""
-    
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        for name, key in API_KEYS.items():
+            try:
+                model = load_model(key)
+                response = model.generate_content(prompt)
+                return response.text.strip()
+            except Exception as e:
+                if "429" in str(e) or "quota" in str(e).lower():
+                    print(f"[!] Key '{name}' bị quota (429). Thử key khác...")
+                else:
+                    print(f"[!] Lỗi với key '{name}': {e}")
+                continue
+        # Nếu tất cả key đều fail
+        print(f"[!] Tạm nghỉ 15 giây (lần {attempt+1}/{max_attempts}) vì quota toàn bộ...")
+        time.sleep(15)
 
-# 4. Hàm xử lý file sau khi đã crawl và preprocess
+    return "[!] Tóm tắt thất bại vì quá hạn mức."
+
+# ===== 4. Hàm xử lý tóm tắt toàn bộ file =====
 def summarize_news(input_path, output_path):
     if not os.path.exists(input_path):
         print(f"[!] File {input_path} không tồn tại.")
@@ -63,14 +67,19 @@ def summarize_news(input_path, output_path):
         print(f"[!] Không tìm thấy cột 'content' trong file {input_path}.")
         return
 
-    print(f"[*] Đang tóm tắt file: {input_path} (tổng cộng {len(df)} dòng)")
-    df["summary"] = df["content"].apply(summarize_text)
+    print(f"[*] Bắt đầu tóm tắt: {len(df)} dòng từ {input_path}")
+    
+    summaries = []
+    for idx, content in enumerate(df["content"]):
+        print(f"[{idx+1}/{len(df)}] Đang tóm tắt...")
+        summary = summarize_text(content)
+        summaries.append(summary)
 
+    df["summary"] = summaries
     df.to_csv(output_path, index=False)
     print(f"[+] Đã lưu dữ liệu tóm tắt vào: {output_path}")
 
-
-# 5. Nếu gọi trực tiếp từ CLI
+# ===== 5. Run trực tiếp =====
 if __name__ == "__main__":
     summarize_news(
         "Crawler/Data/vnexpress_process.csv",
