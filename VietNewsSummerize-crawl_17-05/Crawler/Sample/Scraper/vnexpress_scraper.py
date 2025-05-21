@@ -7,8 +7,8 @@ import pandas as pd
 from datetime import datetime
 
 class VNExpressScraper(BaseScraper):
-    def __init__(self, headle, base_url, output_csv, original_csv, persistent_file, emb_csv):
-        super().__init__(headle, base_url, output_csv, original_csv, persistent_file, emb_csv)
+    def __init__(self, headle, base_url, output_csv, original_csv):
+        super().__init__(headle, base_url, output_csv, original_csv)
 
     def get_categories(self):
         url = 'https://vnexpress.net'
