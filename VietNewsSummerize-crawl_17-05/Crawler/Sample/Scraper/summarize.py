@@ -48,8 +48,3 @@ if __name__ == "__main__":
         "Crawler/Data/vnexpress_process.csv",
         "Crawler/Data/vnexpress_summarized.csv"
     )
-
-    summarize_news(
-        "Crawler/Data/tienphong_process.csv",
-        "Crawler/Data/tienphong_summarized.csv"
-    )
