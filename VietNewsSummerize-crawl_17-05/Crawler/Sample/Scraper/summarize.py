@@ -2,11 +2,19 @@ import pandas as pd
 import google.generativeai as genai
 import os
 
-# 1. Cấu hình API Key (có thể thay bằng biến môi trường nếu cần bảo mật)
-genai.configure(api_key="AIzaSyDbyeu_mamcJ_mnCz0x8rn9Bs01hb0ZGCc")
 
-# 2. Load mô hình Gemini Flash
-model = genai.GenerativeModel("models/gemini-2.0-flash")
+# ===== 1. Danh sách API keys thay vì 1 key =====
+API_KEYS = {
+    "key1": "AIzaSyDbyeu_mamcJ_mnCz0x8rn9Bs01hb0ZGCc",
+    "key2": "AIzaSyBOb1EJ7shnujjEDFYx7H2p4MszqEsVPL8",
+    "key3": "AIzaSyAHPtfknfozqPAyX82Y7yLJCdZJuYDdQVY",
+}
+
+# ===== 2. Hàm tạo mô hình theo key =====
+def load_model(api_key):
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel("models/gemini-2.0-flash")
+
 
 # 3. Hàm tóm tắt nội dung
 
@@ -16,12 +24,18 @@ def summarize_text(text, max_len=3000):
         text = text[:max_len]  # Giới hạn độ dài để tránh lỗi
 
     prompt = f"Tóm tắt văn bản sau trong 3 đến 4 câu:\n\n{text}"
-    try:
-        response = model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"[!] Lỗi khi tóm tắt: {e}")
-        return ""
+    for name, key in API_KEYS.items():
+        try:
+            model = load_model(key)
+            response = model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"[!] Key '{name}' bị lỗi: {e}")
+            continue
+
+    print("[!] Tất cả các API key đều thất bại.")
+    return ""
+    
 
 # 4. Hàm xử lý file sau khi đã crawl và preprocess
 def summarize_news(input_path, output_path):
