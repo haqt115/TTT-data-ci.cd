@@ -44,4 +44,3 @@ def preprocess_news(input_path, output_path):
 
 if __name__ == "__main__":
     preprocess_news("Crawler/Data/vnexpress_articles.csv", "Crawler/Data/vnexpress_process.csv")
-    preprocess_news("Crawler/Data/tienphong_articles.csv", "Crawler/Data/tienphong_process.csv")
