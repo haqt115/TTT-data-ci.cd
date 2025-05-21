@@ -26,10 +26,13 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run scraper script
-        run: python Crawler/Sample/Scraper/main.py
+        run: |
+          cd VietNewsSummerize-crawl_17-05
+          python Crawler/Sample/Scraper/main.py
 
       - name: Commit and push updated data
-        run: |
+         run: |
+          cd VietNewsSummerize-crawl_17-05
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git pull origin main
