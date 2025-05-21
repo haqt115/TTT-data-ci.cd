@@ -5,16 +5,6 @@
         "base_url": "https://vnexpress.net/",
         "output_csv": "Crawler/Data/vnexpress_articles.csv",
         "process": "Crawler/Data/vnexpress_process.csv",
-        "persistent_file": "Crawler/Data/vnexpress_seen_links.pkl",
-        "emb_csv": "Crawler/Data/vnexpress_emb.csv"
-    },
-    {
-        "name": "TienPhong",
-        "headle": true,
-        "base_url": "https://tienphong.vn/",
-        "output_csv": "Crawler/Data/tienphong_articles.csv",
-        "process": "Crawler/Data/tienphong_process.csv",
-        "persistent_file": "Crawler/Data/tienphong_seen_links.pkl",
-        "emb_csv": "Crawler/Data/tienphong_emb.csv"
     }
+
 ]
