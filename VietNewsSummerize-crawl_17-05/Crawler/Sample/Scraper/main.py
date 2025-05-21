@@ -13,7 +13,7 @@ with open(config_path, "r") as f:
 def run_scraper(cfg):
     scraper = get_scraper(
         cfg["name"], cfg["headle"], cfg["base_url"],
-        cfg["output_csv"], cfg["process"]
+        cfg["output_csv"], cfg["process"], cfg["persistent_file"], cfg["emb_csv"]
     )
     scraper.scrape()
 
@@ -26,3 +26,9 @@ def run_scraper(cfg):
 if __name__ == '__main__':
     for cfg in config:
         run_scraper(cfg)
+
+scraper.scrape()
+if os.path.exists(cfg["output_csv"]):
+    print(f"[+] File {cfg['output_csv']} đã được tạo.")
+else:
+    print(f"[!] File {cfg['output_csv']} chưa được tạo, kiểm tra lại bước scrape.")
