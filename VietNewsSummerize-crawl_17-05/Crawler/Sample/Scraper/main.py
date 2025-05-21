@@ -13,7 +13,7 @@ with open(config_path, "r") as f:
 def run_scraper(cfg):
     scraper = get_scraper(
         cfg["name"], cfg["headle"], cfg["base_url"],
-        cfg["output_csv"], cfg["process"], cfg["persistent_file"], cfg["emb_csv"]
+        cfg["output_csv"], cfg["process"]
     )
     scraper.scrape()
 
