@@ -1,5 +1,8 @@
 name: Data Crawl and Process
 
+permissions:
+  contents: write  # 👈 Cho phép commit và push code
+
 on:
   push:
     branches:
@@ -40,6 +43,6 @@ jobs:
           git pull origin main
           git add Crawler/Data/
           git commit -m "Auto update crawled data" || echo "No changes to commit"
-          git push
+          git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
