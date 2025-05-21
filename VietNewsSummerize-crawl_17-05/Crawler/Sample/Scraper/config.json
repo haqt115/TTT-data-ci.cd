@@ -4,7 +4,7 @@
         "headle": true,
         "base_url": "https://vnexpress.net/",
         "output_csv": "Crawler/Data/vnexpress_articles.csv",
-        "process": "Crawler/Data/vnexpress_process.csv",
+        "process": "Crawler/Data/vnexpress_process.csv"
     }
 
 ]
