@@ -8,3 +8,6 @@ nltk>=3.5
 schedule>=1.1.0
 transformers>=4.0.0
 torch>=1.7.1  
+requests
+beautifulsoup4
+lxml
