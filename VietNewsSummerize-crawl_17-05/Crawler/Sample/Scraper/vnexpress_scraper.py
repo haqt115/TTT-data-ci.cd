@@ -1,7 +1,6 @@
 from base_scraper import BaseScraper
 import requests
 from bs4 import BeautifulSoup
-import time
 import os
 import pandas as pd
 from datetime import datetime
@@ -61,90 +60,88 @@ class VNExpressScraper(BaseScraper):
                                         categories.append((main_category, sub_name, sub_link))
                 except Exception as e:
                     print(f"[!] Lỗi khi truy cập chuyên mục {main_category}: {e}")
-                time.sleep(0.5)
 
         print(f"[+] Tìm thấy {len(categories)} chuyên mục & tiểu mục")
         return categories
 
     def scrape(self):
-        print("[+] Bắt đầu crawl VNExpress...")
+        print("[+] Bắt đầu crawl VNExpress (chỉ 1 trang mỗi chuyên mục)...")
         categories = self.get_categories()
         article_counter = 1
-        today = datetime.now().strftime("%-d/%-m/%Y")  # For comparison
-        today_str = datetime.now().strftime("%d%m%y")  # For ID formatting
+        today = datetime.now().strftime("%-d/%-m/%Y")  # vd: '23/5/2025'
+        today_str = datetime.now().strftime("%d%m%y")  # vd: '230525'
 
         for main_cat, sub_cat, base_url in categories:
-            for page in range(1, 3):  # crawl 2 trang mỗi chuyên mục
-                url = base_url if page == 1 else f"{base_url}-p{page}"
-                try:
-                    response = requests.get(url)
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    articles = soup.find_all('article', class_='item-news')
-                except:
+            url = base_url  # Chỉ lấy trang 1
+            try:
+                response = requests.get(url, timeout=10)
+                soup = BeautifulSoup(response.text, 'html.parser')
+                articles = soup.find_all('article', class_='item-news')
+            except Exception as e:
+                print(f"[!] Lỗi khi lấy trang {url}: {e}")
+                continue
+
+            for article in articles:
+                title_tag = article.find('h3', class_='title-news')
+                if not title_tag:
                     continue
 
-                for article in articles:
-                    title_tag = article.find('h3', class_='title-news')
-                    if not title_tag:
+                title = title_tag.get_text(strip=True)
+                link = title_tag.find('a')['href']
+                try:
+                    article_res = requests.get(link, timeout=10)
+                    article_soup = BeautifulSoup(article_res.text, 'html.parser')
+
+                    time_tag = article_soup.find('span', class_='date')
+                    date_raw = time_tag.get_text(strip=True) if time_tag else None
+                    if not date_raw:
                         continue
 
-                    title = title_tag.get_text(strip=True)
-                    link = title_tag.find('a')['href']
-                    try:
-                        article_res = requests.get(link)
-                        article_soup = BeautifulSoup(article_res.text, 'html.parser')
+                    date_parts = date_raw.split(',')
+                    if len(date_parts) < 2:
+                        continue
+                    date_clean = date_parts[1].strip()
 
-                        time_tag = article_soup.find('span', class_='date')
-                        date_raw = time_tag.get_text(strip=True) if time_tag else None
-                        if not date_raw:
-                            continue
-
-                        try:
-                            date_parts = date_raw.split(',')
-                            if len(date_parts) >= 2:
-                                date_clean = date_parts[1].strip()
-                            else:
-                                continue
-                        except:
-                            continue
-
-                        if date_clean != today:
-                            continue
-
-                        content_div = article_soup.find('article', class_='fck_detail')
-                        content_text = '\n'.join([p.get_text(strip=True) for p in content_div.find_all('p')]) if content_div else None
-                        if not content_text or len(content_text) < 30:
-                            continue
-
-                        author = None
-                        normal_paragraphs = article_soup.find_all('p', class_='Normal')
-                        for p in reversed(normal_paragraphs):
-                            strong_tag = p.find('strong')
-                            if strong_tag:
-                                author = strong_tag.get_text(strip=True)
-                                break
-
-                        article_id = f"VNEX_{today_str}_{article_counter:05d}"
-                        article_counter += 1
-
-                        article_data = {
-                            'id': article_id,
-                            'title': title,
-                            'link': link,
-                            'content': content_text,
-                            'date': date_raw,
-                            'author': author,
-                            'category': main_cat,
-                            'sub_category': sub_cat,
-                            'source': 'VN Express'
-                        }
-
-                        self.save_to_csv([article_data])
-
-                    except:
+                    if date_clean != today:
                         continue
 
-                    time.sleep(1)
+                    content_div = article_soup.find('article', class_='fck_detail')
+                    if not content_div:
+                        continue
+                    content_text = '\n'.join([p.get_text(strip=True) for p in content_div.find_all('p')])
+                    if len(content_text) < 30:
+                        continue
+
+                    author = None
+                    normal_paragraphs = article_soup.find_all('p', class_='Normal')
+                    for p in reversed(normal_paragraphs):
+                        strong_tag = p.find('strong')
+                        if strong_tag:
+                            author = strong_tag.get_text(strip=True)
+                            break
+
+                    article_id = f"VNEX_{today_str}_{article_counter:05d}"
+                    article_counter += 1
+
+                    article_data = {
+                        'id': article_id,
+                        'title': title,
+                        'link': link,
+                        'content': content_text,
+                        'date': date_raw,
+                        'author': author,
+                        'category': main_cat,
+                        'sub_category': sub_cat,
+                        'source': 'VN Express'
+                    }
+
+                    self.save_to_csv([article_data])
+
+                except Exception as e:
+                    print(f"[!] Lỗi khi lấy bài viết {link}: {e}")
+                    continue
+
+                # Không delay để chạy nhanh trên Github Actions
 
     def save_to_csv(self, data):
         try:
