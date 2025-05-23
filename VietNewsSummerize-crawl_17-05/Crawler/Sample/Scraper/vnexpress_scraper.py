@@ -74,7 +74,7 @@ class VNExpressScraper(BaseScraper):
         today_str = datetime.now().strftime("%d%m%y")  # For ID formatting
 
         for main_cat, sub_cat, base_url in categories:
-            for page in range(1, 2):  # crawl 1-5 page mỗi chuyên mục
+            for page in range(1, 3):  # crawl 2 trang mỗi chuyên mục
                 url = base_url if page == 1 else f"{base_url}-p{page}"
                 try:
                     response = requests.get(url)
